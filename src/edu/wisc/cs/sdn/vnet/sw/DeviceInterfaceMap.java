@@ -1,7 +1,6 @@
 package edu.wisc.cs.sdn.vnet.sw;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import edu.wisc.cs.sdn.vnet.Iface;
 import net.floodlightcontroller.packet.MACAddress;
 
@@ -54,6 +53,12 @@ public class DeviceInterfaceMap
 	//////////////////////////////////////////////////////////////////////
 	public Iface getMapInterface(MACAddress outAddress)
 	{
+		// TODO: Remove Debug:
+		for (Map.Entry<MACAddress, Iface> entry : deviceInterface.entrySet())
+		{
+			System.out.println("MACs:" + entry.toString());
+		}
+
 		return deviceInterface.get(outAddress);
 	}
 	

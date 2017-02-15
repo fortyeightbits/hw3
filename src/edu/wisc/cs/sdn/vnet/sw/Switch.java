@@ -1,9 +1,7 @@
 package edu.wisc.cs.sdn.vnet.sw;
 
 import net.floodlightcontroller.packet.Ethernet;
-
 import java.util.Map;
-
 import edu.wisc.cs.sdn.vnet.Device;
 import edu.wisc.cs.sdn.vnet.DumpFile;
 import edu.wisc.cs.sdn.vnet.Iface;
@@ -42,10 +40,14 @@ public class Switch extends Device
 		
 		if (outputInterface != null)
 		{
+			// TODO: Remove debug
+			System.out.println("sending to some");
 			sendPacket(etherPacket, outputInterface);
 		}
 		else
 		{
+			// TODO: Remove debug
+			System.out.println("sending to all");
 			for (Map.Entry<String, Iface> entry : interfaces.entrySet())
 			{
 				sendPacket(etherPacket, entry.getValue());

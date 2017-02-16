@@ -13,7 +13,7 @@ public class TimedIface
 	public Iface savedInterface;
 	public MACAddress savedMac;
 	TimedIface self;
-	static final int TIMEOUT_DELAY = 10000;
+	static final int TIMEOUT_DELAY = 15000;
 	
 	// Constructor
 	public TimedIface(Iface incomingInterface, MACAddress mac, TimedIfaceCallback ifaceCallback)

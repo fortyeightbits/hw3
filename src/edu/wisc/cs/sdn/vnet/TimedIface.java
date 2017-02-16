@@ -2,6 +2,8 @@ package edu.wisc.cs.sdn.vnet;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import net.floodlightcontroller.packet.MACAddress;
+
 public class TimedIface
 {
 	// Members
@@ -9,13 +11,15 @@ public class TimedIface
 	Timer ttlTimer;
 	TimerTask timerTask;
 	public Iface savedInterface;
+	public MACAddress savedMac;
 	TimedIface self;
 	static final int TIMEOUT_DELAY = 1000;
 	
 	// Constructor
-	public TimedIface(Iface incomingInterface, TimedIfaceCallback ifaceCallback)
+	public TimedIface(Iface incomingInterface, MACAddress mac, TimedIfaceCallback ifaceCallback)
 	{
 		savedInterface = incomingInterface;
+		savedMac = mac;
 		self = this;
 		callback = ifaceCallback;
 		ttlTimer = new Timer();

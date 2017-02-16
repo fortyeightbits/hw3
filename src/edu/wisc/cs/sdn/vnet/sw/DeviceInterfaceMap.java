@@ -36,7 +36,6 @@ public class DeviceInterfaceMap implements TimedIfaceCallback
 	public Boolean recordIncomingMac(MACAddress inAddress, Iface port)
 	{
 		Boolean retVal = false;
-		TimedIface timedPort = new TimedIface(port, this);
 		if (deviceInterface.containsValue(inAddress))
 		{
 			// If the Mac is already present, return true and reset its timer
@@ -45,6 +44,7 @@ public class DeviceInterfaceMap implements TimedIfaceCallback
 		}
 		else
 		{
+			TimedIface timedPort = new TimedIface(port, inAddress, this) ;
 			// Else, we add it to the hashmap
 			deviceInterface.put(inAddress, timedPort);
 		}
@@ -84,7 +84,7 @@ public class DeviceInterfaceMap implements TimedIfaceCallback
 	{
 		//TODO: Remove debug
 		System.out.println("TtlTimer handled for " + invoker.savedInterface.getName());
-		deviceInterface.remove(invoker);
+		deviceInterface.remove(invoker.savedMac);
 	}
 	
 	

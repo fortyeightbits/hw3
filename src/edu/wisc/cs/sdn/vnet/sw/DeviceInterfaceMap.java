@@ -38,12 +38,16 @@ public class DeviceInterfaceMap implements TimedIfaceCallback
 		Boolean retVal = false;
 		if (deviceInterface.containsKey(inAddress))
 		{
+			//TODO: remove
+			System.out.println("MAC found in map");
 			// If the Mac is already present, return true and reset its timer
 			retVal = true;
 			deviceInterface.get(inAddress).resetTtlTimer();
 		}
 		else
 		{
+			//TODO: remove
+			System.out.println("MAC NOT found in map");
 			TimedIface timedPort = new TimedIface(port, inAddress, this) ;
 			// Else, we add it to the hashmap
 			deviceInterface.put(inAddress, timedPort);

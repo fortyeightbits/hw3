@@ -2,22 +2,24 @@ package edu.wisc.cs.sdn.vnet.sw;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import edu.wisc.cs.sdn.vnet.Iface;
+import edu.wisc.cs.sdn.vnet.TimedIface;
+import edu.wisc.cs.sdn.vnet.TimedIfaceCallback;
 import net.floodlightcontroller.packet.MACAddress;
 
-public class DeviceInterfaceMap
+public class DeviceInterfaceMap implements TimedIfaceCallback
 {
 	// Members:
-	public Map<MACAddress, Iface> deviceInterface;
+	public Map<MACAddress, TimedIface> deviceInterface;
 	
 	// Constructor
 	public DeviceInterfaceMap()
 	{
-		deviceInterface = new LinkedHashMap<MACAddress,Iface>()
+		deviceInterface = new LinkedHashMap<MACAddress,TimedIface>()
 		{
 			private static final long serialVersionUID = 1L;
 			static final int MAX_DEVICES = 1024; 
 			//@Override
-			protected boolean removeEldestEntry(Map.Entry<MACAddress, Iface> eldest)
+			protected boolean removeEldestEntry(Map.Entry<MACAddress, TimedIface> eldest)
 			{
 				return size() > MAX_DEVICES;
 			}
@@ -34,15 +36,17 @@ public class DeviceInterfaceMap
 	public Boolean recordIncomingMac(MACAddress inAddress, Iface port)
 	{
 		Boolean retVal = false;
+		TimedIface timedPort = new TimedIface(port, this);
 		if (deviceInterface.containsValue(inAddress))
 		{
-			// If the Mac is already present, return true and do nothing
+			// If the Mac is already present, return true and reset its timer
 			retVal = true;
+			deviceInterface.get(inAddress).resetTtlTimer();
 		}
 		else
 		{
 			// Else, we add it to the hashmap
-			deviceInterface.put(inAddress, port);
+			deviceInterface.put(inAddress, timedPort);
 		}
 		return retVal;
 	}
@@ -54,15 +58,34 @@ public class DeviceInterfaceMap
 	public Iface getMapInterface(MACAddress outAddress)
 	{
 		// TODO: Remove Debug:
-		for (Map.Entry<MACAddress, Iface> entry : deviceInterface.entrySet())
+		for (Map.Entry<MACAddress, TimedIface> entry : deviceInterface.entrySet())
 		{
 			System.out.println("MACs:" + entry.toString());
 		}
-
-		return deviceInterface.get(outAddress);
+		Iface retVal;
+		
+		TimedIface foundInterface = deviceInterface.get(outAddress);
+		if (foundInterface != null)
+		{
+			retVal = foundInterface.savedInterface;
+		}
+		else
+		{
+			retVal = null;
+		}
+		return retVal;
 	}
 	
-	
+	//////////////////////////////////////////////////////////////////////
+	/// param[in] outAddress The mac address of the outgoing packet
+	/// return Interface to which address is mapped to, or null if none
+	//////////////////////////////////////////////////////////////////////
+	public void handleTimer(TimedIface invoker)
+	{
+		//TODO: Remove debug
+		System.out.println("TtlTimer handled for " + invoker.savedInterface.getName());
+		deviceInterface.remove(invoker);
+	}
 	
 	
 }

@@ -36,7 +36,7 @@ public class DeviceInterfaceMap implements TimedIfaceCallback
 	public Boolean recordIncomingMac(MACAddress inAddress, Iface port)
 	{
 		Boolean retVal = false;
-		if (deviceInterface.containsValue(inAddress))
+		if (deviceInterface.containsKey(inAddress))
 		{
 			// If the Mac is already present, return true and reset its timer
 			retVal = true;

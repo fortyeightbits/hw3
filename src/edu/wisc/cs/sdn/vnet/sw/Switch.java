@@ -36,7 +36,7 @@ public class Switch extends Device
 		interfaceMap.recordIncomingMac(etherPacket.getSourceMAC(), inIface);
 		
 		// Check if outgoing MAC is mapped in interface, then output from that interface, else output to all
-		Iface outputInterface = interfaceMap.getMapInterface(etherPacket.getDestinationMAC());
+		Iface outputInterface = (Iface) interfaceMap.getMapInterface(etherPacket.getDestinationMAC());
 		
 		if (outputInterface != null)
 		{

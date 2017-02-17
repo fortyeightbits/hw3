@@ -7,7 +7,7 @@ import net.floodlightcontroller.packet.MACAddress;
  * An interface on a router.
  * @author Aaron Gember-Jacobson
  */
-public class Iface 
+public class Iface implements IfaceInterface
 {
 	private String name;
 	private MACAddress macAddress;

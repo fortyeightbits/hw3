@@ -4,13 +4,13 @@ import java.util.TimerTask;
 
 import net.floodlightcontroller.packet.MACAddress;
 
-public class TimedIface
+public class TimedIface implements IfaceInterface
 {
 	// Members
 	TimedIfaceCallback callback;
 	Timer ttlTimer;
 	TimerTask timerTask;
-	public Iface savedInterface;
+	private Iface savedInterface;
 	public MACAddress savedMac;
 	TimedIface self;
 	static final int TIMEOUT_DELAY = 15000;
@@ -50,6 +50,46 @@ public class TimedIface
 			}
 		};
 		ttlTimer.schedule(timerTask, TIMEOUT_DELAY);
+	}
+	
+	public String getName()
+	{
+		return savedInterface.getName();
+	}
+	
+	public void setMacAddress(MACAddress mac)
+	{
+		savedInterface.setMacAddress(mac);
+	}
+	
+	public MACAddress getMacAddress()
+	{
+		return savedInterface.getMacAddress();
+	}
+
+	public void setIpAddress(int ip)
+	{
+		savedInterface.setIpAddress(ip);
+	}
+	
+	public int getIpAddress()
+	{
+		return savedInterface.getIpAddress();
+	}
+	
+    public void setSubnetMask(int subnetMask)
+    {
+    	savedInterface.setSubnetMask(subnetMask);
+    }
+	
+	public int getSubnetMask()
+	{
+		return savedInterface.getSubnetMask();
+	}
+
+	public String toString()
+	{
+		return savedInterface.toString();
 	}
 	
 }

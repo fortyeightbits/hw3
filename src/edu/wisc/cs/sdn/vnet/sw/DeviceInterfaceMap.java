@@ -68,10 +68,10 @@ public class DeviceInterfaceMap implements TimedIfaceCallback
 		}
 		Iface retVal;
 		
-		Iface foundInterface = deviceInterface.get(outAddress).getIface();
+		TimedIface foundInterface = deviceInterface.get(outAddress);
 		if (foundInterface != null)
 		{
-			retVal = foundInterface;
+			retVal = foundInterface.getIface();
 		}
 		else
 		{

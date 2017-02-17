@@ -2,7 +2,6 @@ package edu.wisc.cs.sdn.vnet.sw;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import edu.wisc.cs.sdn.vnet.Iface;
-import edu.wisc.cs.sdn.vnet.IfaceInterface;
 import edu.wisc.cs.sdn.vnet.TimedIface;
 import edu.wisc.cs.sdn.vnet.TimedIfaceCallback;
 import net.floodlightcontroller.packet.MACAddress;
@@ -60,19 +59,19 @@ public class DeviceInterfaceMap implements TimedIfaceCallback
 	/// param[in] outAddress The mac address of the outgoing packet
 	/// return Interface to which address is mapped to, or null if none
 	//////////////////////////////////////////////////////////////////////
-	public IfaceInterface getMapInterface(MACAddress outAddress)
+	public Iface getMapInterface(MACAddress outAddress)
 	{
 		// TODO: Remove Debug:
 		for (Map.Entry<MACAddress, TimedIface> entry : deviceInterface.entrySet())
 		{
 			System.out.println("MACs:" + entry.toString());
 		}
-		IfaceInterface retVal;
+		Iface retVal;
 		
-		TimedIface foundInterface = deviceInterface.get(outAddress);
+		Iface foundInterface = deviceInterface.get(outAddress).getIface();
 		if (foundInterface != null)
 		{
-			retVal = (IfaceInterface)foundInterface;
+			retVal = foundInterface;
 		}
 		else
 		{

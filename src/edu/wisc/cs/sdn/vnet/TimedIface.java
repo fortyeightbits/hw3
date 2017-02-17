@@ -52,6 +52,11 @@ public class TimedIface implements IfaceInterface
 		ttlTimer.schedule(timerTask, TIMEOUT_DELAY);
 	}
 	
+	public Iface getIface()
+	{
+		return savedInterface;
+	}
+	
 	public String getName()
 	{
 		return savedInterface.getName();

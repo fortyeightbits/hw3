@@ -43,11 +43,11 @@ public class RouteTable
 			for (RouteEntry e : entries)
 			{
 				String stringEntryIP = IPv4.fromIPv4Address(e.getDestinationAddress());
-				if (stringEntryIP.contains(stringIP))
-				{
-				//System.out.println("dest add: " + e.getDestinationAddress() + "interface ip" + e.getInterface().getIpAddress());
-					return e;
-				}
+				//if (stringEntryIP.contains(stringIP))
+				//{
+				System.out.println("dest add: " + e.getDestinationAddress() + "interface ip" + e.getInterface().getIpAddress());
+					//return e;
+				//}
 			}
 			return null;
 			

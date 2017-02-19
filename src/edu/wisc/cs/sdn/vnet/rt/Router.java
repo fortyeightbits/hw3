@@ -86,6 +86,7 @@ public class Router extends Device
 				etherPacket.toString().replace("\n", "\n\t"));
 
 		/********************************************************************/
+		/*
 		//check if IPv4 packet
 		if (etherPacket.getEtherType() != Ethernet.TYPE_IPv4)
 		{
@@ -113,6 +114,7 @@ public class Router extends Device
 				return;
 			}
 		}
+		*/
 		/********************************************************************/
 	}
 }

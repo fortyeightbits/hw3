@@ -89,12 +89,11 @@ public class Router extends Device
 		/********************************************************************/
 		
 		//check if IPv4 packet
-		/*
 		if (etherPacket.getEtherType() != Ethernet.TYPE_IPv4)
 		{
+			System.out.println("ether type: " + etherPacket.getEtherType());
 			return; 
 		}
-		*/
 		IPv4 header = (IPv4)etherPacket.getPayload();
 		routeTable.lookup(header.getDestinationAddress());
 		/*

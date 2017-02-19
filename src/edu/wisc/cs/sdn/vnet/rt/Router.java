@@ -85,15 +85,19 @@ public class Router extends Device
 		System.out.println("*** -> Received packet: " +
 				etherPacket.toString().replace("\n", "\n\t"));
 
+		
 		/********************************************************************/
-		/*
+		
 		//check if IPv4 packet
 		if (etherPacket.getEtherType() != Ethernet.TYPE_IPv4)
 		{
-			return; //TODO: how to drop?
+			return; 
 		}
-
 		IPv4 header = (IPv4)etherPacket.getPayload();
+		routeTable.lookup(header.getDestinationAddress());
+		/*
+		IPv4 header = (IPv4)etherPacket.getPayload();
+		
 		header.resetChecksum();
 		int checksum = (header.getHeaderLength() * 4) ; //TODO: do i need payload length?
 		if (header.getChecksum() != checksum)
@@ -101,7 +105,8 @@ public class Router extends Device
 			return;
 		}
 
-		header.setTtl(header.getTtl() - 1); //TODO: byte??
+		header.setTtl((byte)(header.getTtl() - 1)); 
+		
 		if (header.getTtl() == 0)
 		{
 			return;

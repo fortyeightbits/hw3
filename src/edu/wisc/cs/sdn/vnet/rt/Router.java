@@ -8,6 +8,7 @@ import edu.wisc.cs.sdn.vnet.Iface;
 
 import net.floodlightcontroller.packet.Ethernet;
 import net.floodlightcontroller.packet.IPv4;
+import net.floodlightcontroller.packet.MACAddress;
 import net.floodlightcontroller.packet.IPacket;
 
 /**
@@ -100,7 +101,7 @@ public class Router extends Device
 		int checksum = (header.getHeaderLength() * 4) ; //TODO
 		if (header.getTotalLength() != checksum)
 		{
-			System.out.println("packet dropped: checksum = " + checksum + 
+			System.out.println("checksum error: checksum = " + checksum + 
 					" header total length = " + header.getTotalLength());
 			//return; //TODO
 		}
@@ -122,6 +123,18 @@ public class Router extends Device
 			}
 		}
 		
+		//FORWARDING PACKETS
+		RouteEntry rEntry = routeTable.lookup(header.getDestinationAddress());
+		if (rEntry == null)
+			return;
+		ArpEntry aEntry = arpCache.lookup(header.getDestinationAddress());
+		MACAddress MAC = aEntry.getMac();
+		etherPacket.setDestinationMACAddress(MAC.toBytes());
+		MACAddress interfaceMAC = rEntry.getInterface().getMacAddress();
+		etherPacket.setSourceMACAddress(interfaceMAC.toBytes());
+		
+		sendPacket(etherPacket, rEntry.getInterface());
+				
 		/********************************************************************/
 	}
 }

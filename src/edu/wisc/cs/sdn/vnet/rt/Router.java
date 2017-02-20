@@ -94,9 +94,6 @@ public class Router extends Device
 			return; 
 		}
 		IPv4 header = (IPv4)etherPacket.getPayload();
-		routeTable.lookup(header.getDestinationAddress());
-		
-		IPv4 header = (IPv4)etherPacket.getPayload();
 		
 		header.resetChecksum();
 		int checksum = (header.getHeaderLength() * 4) ; //TODO: do i need payload length?

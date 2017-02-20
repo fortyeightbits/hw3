@@ -91,18 +91,18 @@ public class Router extends Device
 		//check if IPv4 packet
 		if (etherPacket.getEtherType() != Ethernet.TYPE_IPv4)
 		{
-			System.out.println("ether type: " + etherPacket.getEtherType());
 			return; 
 		}
 		IPv4 header = (IPv4)etherPacket.getPayload();
 		routeTable.lookup(header.getDestinationAddress());
-		/*
+		
 		IPv4 header = (IPv4)etherPacket.getPayload();
 		
 		header.resetChecksum();
 		int checksum = (header.getHeaderLength() * 4) ; //TODO: do i need payload length?
 		if (header.getChecksum() != checksum)
 		{
+			System.out.println("packet dropped: checksum");
 			return;
 		}
 
@@ -110,6 +110,7 @@ public class Router extends Device
 		
 		if (header.getTtl() == 0)
 		{
+			System.out.println("packet dropped: TTL");
 			return;
 		}
 
@@ -117,10 +118,11 @@ public class Router extends Device
 		{
 			if (entry.getValue().getIpAddress() == header.getDestinationAddress())
 			{
+				System.out.println("packet dropped: interface");
 				return;
 			}
 		}
-		*/
+		
 		/********************************************************************/
 	}
 }

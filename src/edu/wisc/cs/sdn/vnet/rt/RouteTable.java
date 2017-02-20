@@ -42,18 +42,21 @@ public class RouteTable
 			
 			RouteEntry bestmatch = null;
 			int longestPrefix = 0;
-
 			for (RouteEntry e : entries)
 			{
+				
 				int entryMaskAdd = e.getMaskAddress();
+				
+				System.out.println("entry mask add: " + entryMaskAdd);
 				int prefixLength = 32;
+				int mask = entryMaskAdd;
 				//shift all the zeros out
-				while ( (entryMaskAdd & 0x1) == 0) 
+				while ( (mask & 0x1) == 0) 
 				{
-					entryMaskAdd >>= 1;
+					mask >>= 1;
 					prefixLength--;
 				}
-				int subnetNum = entryMaskAdd & ip; 
+				int subnetNum = entryMaskAdd & ip;
 				if (subnetNum == (e.getDestinationAddress() & entryMaskAdd)) 
 				{
 					if (prefixLength > longestPrefix)
@@ -62,7 +65,6 @@ public class RouteTable
 						longestPrefix = prefixLength;
 					}
 				}
-				//System.out.println("dest add: " + e.getDestinationAddress() + "mask add" + e.getMaskAddress());
 
 			}
 			return bestmatch;

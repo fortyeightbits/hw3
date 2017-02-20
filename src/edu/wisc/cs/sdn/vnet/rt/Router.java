@@ -137,6 +137,7 @@ public class Router extends Device
 		}
 		ArpEntry aEntry = arpCache.lookup(header.getDestinationAddress());
 		MACAddress MAC = aEntry.getMac();
+		System.out.println("MAC: ");
 		etherPacket.setDestinationMACAddress(MAC.toBytes());
 		MACAddress interfaceMAC = rEntry.getInterface().getMacAddress();
 		etherPacket.setSourceMACAddress(interfaceMAC.toBytes());

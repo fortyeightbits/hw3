@@ -1,5 +1,6 @@
 package edu.wisc.cs.sdn.vnet.rt;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 import edu.wisc.cs.sdn.vnet.Device;
@@ -97,11 +98,11 @@ public class Router extends Device
 		}
 		IPv4 header = (IPv4)etherPacket.getPayload();
 		
-		header.resetChecksum();
-		int checksum = (header.getHeaderLength() * 4) ; //TODO
-		if (header.getTotalLength() != checksum)
+		// Check if checksum is correct
+		short calculatedChecksum = Router.calculateIPv4Checksum(header);
+		if (header.getChecksum() != calculatedChecksum)
 		{
-			System.out.println("checksum error: checksum = " + checksum + 
+			System.out.println("checksum error: checksum = " + calculatedChecksum + 
 					" header total length = " + header.getTotalLength());
 			//return; //TODO
 		}
@@ -136,5 +137,42 @@ public class Router extends Device
 		sendPacket(etherPacket, rEntry.getInterface());
 				
 		/********************************************************************/
+	}
+	
+	/**
+	 * Static method to calculate the checksum of a given Ipv4 header
+	 * @param header The IPv4 header on which to calculate the checksum.
+	 */	
+	public static short calculateIPv4Checksum(IPv4 header)
+	{
+		short retVal = 0;
+		short headerLength = header.getHeaderLength();
+		
+		// We save off the currently stored checksum then synchronize:
+		short savedChecksum = header.getChecksum();
+		synchronized (header) 
+		{
+			// Now clear the checksum field so we can calculate it over the header:
+			header.resetChecksum();
+			ByteBuffer headerAsBytes = ByteBuffer.wrap(header.serialize());
+			
+            headerAsBytes.rewind();
+            int accumulation = 0;
+            // headerLength is stored as number of 32bit words, so we multiply 2 to get number of 16bit(shorts)
+            for (int i = 0; i < headerLength * 2; ++i) 
+            {
+                accumulation += 0xffff & headerAsBytes.getShort();
+            }
+            // Adding carry forward if any:
+            accumulation = ((accumulation >> 16) & 0xffff)
+                    + (accumulation & 0xffff);
+            
+            // Inverting the final value and casting to short for final checksum, this will be returned.
+            retVal = (short) (~accumulation & 0xffff);
+			
+			// Restore the previously stored checksum
+			header.setChecksum(savedChecksum);
+		}	
+		return retVal;
 	}
 }

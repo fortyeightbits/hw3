@@ -3,6 +3,8 @@ package edu.wisc.cs.sdn.vnet.rt;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
+import javax.swing.plaf.synth.SynthSpinnerUI;
+
 import edu.wisc.cs.sdn.vnet.Device;
 import edu.wisc.cs.sdn.vnet.DumpFile;
 import edu.wisc.cs.sdn.vnet.Iface;
@@ -100,6 +102,9 @@ public class Router extends Device
 		
 		// Check if checksum is correct
 		short calculatedChecksum = Router.calculateIPv4Checksum(header);
+		System.out.println("Calculated Checksum: " + calculatedChecksum);
+		System.out.println("Packet Checksum: " + header.getChecksum());
+		
 		if (header.getChecksum() != calculatedChecksum)
 		{
 			System.out.println("checksum error: checksum = " + calculatedChecksum + 

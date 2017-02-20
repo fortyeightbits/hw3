@@ -107,8 +107,7 @@ public class Router extends Device
 		
 		if (header.getChecksum() != calculatedChecksum)
 		{
-			System.out.println("checksum error: checksum = " + calculatedChecksum + 
-					" header total length = " + header.getTotalLength());
+			System.out.println("checksum error");
 			//return; //TODO
 		}
 
@@ -140,7 +139,7 @@ public class Router extends Device
 		etherPacket.setSourceMACAddress(interfaceMAC.toBytes());
 		
 		sendPacket(etherPacket, rEntry.getInterface());
-				
+		System.out.println("packet sent");
 		/********************************************************************/
 	}
 	

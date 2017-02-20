@@ -39,26 +39,34 @@ public class RouteTable
         {
 			/*****************************************************************/
 			/* TODO: Find the route entry with the longest prefix match      */
-			/*
+			
 			RouteEntry bestmatch = null;
 			int longestPrefix = 0;
+
 			for (RouteEntry e : entries)
 			{
 				int entryMaskAdd = e.getMaskAddress();
-				int prefixLength = //where does 1 end?
+				int prefixLength = 32;
+				//shift all the zeros out
+				while ( (entryMaskAdd & 0x1) == 0) 
+				{
+					entryMaskAdd >>= 1;
+					prefixLength--;
+				}
 				int subnetNum = entryMaskAdd & ip; 
-				
-				if (subnetNum == e.getDestinationAddress()) //TODO not exact match
+				if (subnetNum == (e.getDestinationAddress() & entryMaskAdd)) 
 				{
 					if (prefixLength > longestPrefix)
+					{
 						bestmatch = e;
+						longestPrefix = prefixLength;
+					}
 				}
-				System.out.println("dest add: " + e.getDestinationAddress() + "interface ip" + e.getInterface().getIpAddress());
+				//System.out.println("dest add: " + e.getDestinationAddress() + "mask add" + e.getMaskAddress());
 
 			}
 			return bestmatch;
-			*/
-			return null;
+			
 			/*****************************************************************/
         }
 	}

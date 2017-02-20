@@ -100,9 +100,9 @@ public class Router extends Device
 		int checksum = (header.getHeaderLength() * 4) ; //TODO
 		if (header.getTotalLength() != checksum)
 		{
-			System.out.println("packet dropped: checksum =" + checksum + 
-					" header total length = " + header.getTotalLength() + "header.checksum = " + header.getChecksum());
-			return;
+			System.out.println("packet dropped: checksum = " + checksum + 
+					" header total length = " + header.getTotalLength());
+			//return; //TODO
 		}
 
 		header.setTtl((byte)(header.getTtl() - 1)); 

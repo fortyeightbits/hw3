@@ -8,6 +8,7 @@ import edu.wisc.cs.sdn.vnet.Iface;
 
 import net.floodlightcontroller.packet.Ethernet;
 import net.floodlightcontroller.packet.IPv4;
+import net.floodlightcontroller.packet.IPacket;
 
 /**
  * @author Aaron Gember-Jacobson and Anubhavnidhi Abhashkumar
@@ -96,10 +97,11 @@ public class Router extends Device
 		IPv4 header = (IPv4)etherPacket.getPayload();
 		
 		header.resetChecksum();
-		int checksum = (header.getHeaderLength() * 4) ; //TODO: do i need payload length?
-		if (header.getChecksum() != checksum)
+		int checksum = (header.getHeaderLength() * 4) ; //TODO
+		if (header.getTotalLength() != checksum)
 		{
-			System.out.println("packet dropped: checksum");
+			System.out.println("packet dropped: checksum =" + checksum + 
+					" header total length = " + header.getTotalLength() + "header.checksum = " + header.getChecksum());
 			return;
 		}
 

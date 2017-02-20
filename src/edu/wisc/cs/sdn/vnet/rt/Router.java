@@ -127,11 +127,14 @@ public class Router extends Device
 				return;
 			}
 		}
-		
+		System.out.println("forwarding now");
 		//FORWARDING PACKETS
 		RouteEntry rEntry = routeTable.lookup(header.getDestinationAddress());
 		if (rEntry == null)
+		{
+			System.out.println("RouteEntry null");
 			return;
+		}
 		ArpEntry aEntry = arpCache.lookup(header.getDestinationAddress());
 		MACAddress MAC = aEntry.getMac();
 		etherPacket.setDestinationMACAddress(MAC.toBytes());

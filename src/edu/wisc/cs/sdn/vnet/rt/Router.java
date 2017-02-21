@@ -135,7 +135,12 @@ public class Router extends Device
 			System.out.println("RouteEntry null");
 			return;
 		}
-		ArpEntry aEntry = arpCache.lookup(header.getDestinationAddress());
+		System.out.println("gateway: " + rEntry.getGatewayAddress());
+		ArpEntry aEntry = arpCache.lookup(rEntry.getGatewayAddress());
+		if (aEntry == null){
+			System.out.println("ArpEntry null");
+			return;
+		}
 		MACAddress MAC = aEntry.getMac();
 		System.out.println("arp MAC: " + MAC.toString());
 		etherPacket.setDestinationMACAddress(MAC.toBytes());
@@ -146,6 +151,7 @@ public class Router extends Device
 		
 		boolean flag = sendPacket(etherPacket, rEntry.getInterface());
 		System.out.println("flag: " + flag);
+		
 		/********************************************************************/
 	}
 	
@@ -172,6 +178,7 @@ public class Router extends Device
             for (int i = 0; i < headerLength * 2; ++i) 
             {
                 accumulation += 0xffff & headerAsBytes.getShort();
+                System.out.println("accum: " + accumulation);
             }
             // Adding carry forward if any:
             accumulation = ((accumulation >> 16) & 0xffff)

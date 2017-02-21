@@ -137,7 +137,7 @@ public class Router extends Device
 		}
 		
 		int nextHop = rEntry.getDestinationAddress();
-		ArpEntry aEntry = arpCache.lookup(nextHop);
+		ArpEntry aEntry = arpCache.lookup(header.getDestinationAddress());
 		if (aEntry == null)
 		{
 			System.out.println("ArpEntry null");

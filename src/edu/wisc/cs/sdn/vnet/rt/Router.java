@@ -123,11 +123,11 @@ public class Router extends Device
 		{
 			if (entry.getValue().getIpAddress() == header.getDestinationAddress())
 			{
-				System.out.println("packet dropped: interface");
 				return;
 			}
 		}
 		System.out.println("forwarding now");
+		System.out.println("packet dest: " + IPv4.fromIPv4Address(header.getDestinationAddress()));
 		//FORWARDING PACKETS
 		RouteEntry rEntry = routeTable.lookup(header.getDestinationAddress());
 		if (rEntry == null)
@@ -136,8 +136,8 @@ public class Router extends Device
 			return;
 		}
 		
-		System.out.println("gateway: " + rEntry.getGatewayAddress());
-		ArpEntry aEntry = arpCache.lookup(rEntry.getGatewayAddress());
+		int nextHop = rEntry.getDestinationAddress();
+		ArpEntry aEntry = arpCache.lookup(nextHop);
 		if (aEntry == null)
 		{
 			System.out.println("ArpEntry null");
@@ -149,7 +149,6 @@ public class Router extends Device
 		etherPacket.setDestinationMACAddress(MAC.toBytes());
 		
 		MACAddress interfaceMAC = rEntry.getInterface().getMacAddress();
-		System.out.println("interface MAC: " + interfaceMAC.toString());
 		etherPacket.setSourceMACAddress(interfaceMAC.toBytes());
 		
 		boolean flag = sendPacket(etherPacket, rEntry.getInterface());
@@ -164,35 +163,39 @@ public class Router extends Device
 	 */	
 	public static short calculateIPv4Checksum(IPv4 header)
 	{
-		short retVal = 0;
-		short headerLength = header.getHeaderLength();
-		
-		// We save off the currently stored checksum then synchronize:
-		short savedChecksum = header.getChecksum();
-		synchronized (header) 
-		{
-			// Now clear the checksum field so we can calculate it over the header:
-			header.resetChecksum();
-			ByteBuffer headerAsBytes = ByteBuffer.wrap(header.serialize());
-			
-            headerAsBytes.rewind();
-            int accumulation = 0;
-            // headerLength is stored as number of 32bit words, so we multiply 2 to get number of 16bit(shorts)
-            for (int i = 0; i < headerLength * 2; ++i) 
-            {
-                accumulation += 0xffff & headerAsBytes.getShort();
-                System.out.println("accum: " + accumulation);
-            }
-            // Adding carry forward if any:
-            accumulation = ((accumulation >> 16) & 0xffff)
-                    + (accumulation & 0xffff);
-            
-            // Inverting the final value and casting to short for final checksum, this will be returned.
-            retVal = (short) (~accumulation & 0xffff);
-			
-			// Restore the previously stored checksum
-			header.setChecksum(savedChecksum);
-		}	
-		return retVal;
+		 short retVal = 0;
+
+synchronized (header) 
+{
+ByteBuffer headerAsBytes = ByteBuffer.wrap(header.serialize());
+
+short headerLength = header.getHeaderLength();
+System.out.println("headerLength: " + headerLength);
+// We save off the currently stored checksum then synchronize:
+short savedChecksum = header.getChecksum();
+// Now clear the checksum field so we can calculate it over the header:
+header.resetChecksum();
+
+           headerAsBytes.rewind();
+           int accumulation = 0;
+           // headerLength is stored as number of 32bit words, so we multiply 2 to get number of 16bit(shorts)
+           for (int i = 0; i < headerLength * 2; ++i) 
+           {
+                //accumulation += (0xffff & headerAsBytes.getShort());
+				accumulation += headerAsBytes.getShort();
+			    System.out.println("accumulation: " + accumulation);
+           }
+           // Adding carry forward if any:
+           accumulation = ((accumulation >> 16) & 0xffff)
+                   + (accumulation & 0xffff);
+           
+           // Inverting the final value and casting to short for final checksum, this will be returned.
+           retVal = (short) (~accumulation & 0xffff);
+
+		   System.out.println("retVal: " + retVal);
+// Restore the previously stored checksum
+header.setChecksum(savedChecksum);
+}	
+return retVal;
 	}
 }

@@ -99,7 +99,7 @@ public class Router extends Device
 			return; 
 		}
 		IPv4 header = (IPv4)etherPacket.getPayload();
-		
+		System.out.println("Packet Checksum before serialization: " + header.getChecksum());
 		// Check if checksum is correct
 		short calculatedChecksum = Router.calculateIPv4Checksum(header);
 		System.out.println("Calculated Checksum: " + calculatedChecksum);
@@ -163,39 +163,30 @@ public class Router extends Device
 	 */	
 	public static short calculateIPv4Checksum(IPv4 header)
 	{
-		 short retVal = 0;
-
-synchronized (header) 
-{
-ByteBuffer headerAsBytes = ByteBuffer.wrap(header.serialize());
-
-short headerLength = header.getHeaderLength();
-System.out.println("headerLength: " + headerLength);
-// We save off the currently stored checksum then synchronize:
-short savedChecksum = header.getChecksum();
-// Now clear the checksum field so we can calculate it over the header:
-header.resetChecksum();
-
-           headerAsBytes.rewind();
-           int accumulation = 0;
-           // headerLength is stored as number of 32bit words, so we multiply 2 to get number of 16bit(shorts)
-           for (int i = 0; i < headerLength * 2; ++i) 
-           {
-                //accumulation += (0xffff & headerAsBytes.getShort());
-				accumulation += headerAsBytes.getShort();
-			    System.out.println("accumulation: " + accumulation);
-           }
-           // Adding carry forward if any:
-           accumulation = ((accumulation >> 16) & 0xffff)
-                   + (accumulation & 0xffff);
-           
-           // Inverting the final value and casting to short for final checksum, this will be returned.
-           retVal = (short) (~accumulation & 0xffff);
-
-		   System.out.println("retVal: " + retVal);
-// Restore the previously stored checksum
-header.setChecksum(savedChecksum);
-}	
-return retVal;
+		short retVal = 0;		
+		short headerLength = header.getHeaderLength();
+		System.out.println("headerLength: " + headerLength);
+		
+		ByteBuffer headerAsBytes = ByteBuffer.wrap(header.serialize());
+		// Now clear the checksum field so we can calculate it over the header:
+		headerAsBytes.putShort(10, (short)0);
+		int accumulation = 0;
+		// headerLength is stored as number of 32bit words, so we multiply 2 to get number of 16bit(shorts)
+		for (int i = 0; i < headerLength * 2; ++i) 
+		{
+			short nextShort = headerAsBytes.getShort();
+			accumulation += nextShort;
+			System.out.println("HeaderasBytesgetshort " + nextShort);
+			System.out.println("accumulation: " + accumulation);
+		}
+		// Adding carry forward if any:
+		accumulation = ((accumulation >> 16) & 0xffff) + (accumulation & 0xffff);
+		System.out.println("AccumBeforeInversion: " + accumulation);
+		// Inverting the final value and casting to short for final checksum, this will be returned.
+		retVal = (short) (~accumulation & 0xffff);
+		
+		System.out.println("retVal: " + retVal);
+	
+		return retVal;
 	}
 }

@@ -46,8 +46,6 @@ public class RouteTable
 			{
 				
 				int entryMaskAdd = e.getMaskAddress();
-				
-				System.out.println("entry mask add: " + entryMaskAdd);
 				int prefixLength = 32;
 				int mask = entryMaskAdd;
 				//shift all the zeros out
@@ -67,6 +65,8 @@ public class RouteTable
 				}
 
 			}
+			String chosen = IPv4.fromIPv4Address(bestmatch.getDestinationAddress());
+			System.out.println("the chosen one: "+ chosen);
 			return bestmatch;
 			
 			/*****************************************************************/

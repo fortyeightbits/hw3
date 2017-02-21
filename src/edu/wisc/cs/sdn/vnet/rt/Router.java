@@ -135,12 +135,15 @@ public class Router extends Device
 			System.out.println("RouteEntry null");
 			return;
 		}
+		
 		System.out.println("gateway: " + rEntry.getGatewayAddress());
 		ArpEntry aEntry = arpCache.lookup(rEntry.getGatewayAddress());
-		if (aEntry == null){
+		if (aEntry == null)
+		{
 			System.out.println("ArpEntry null");
 			return;
 		}
+		
 		MACAddress MAC = aEntry.getMac();
 		System.out.println("arp MAC: " + MAC.toString());
 		etherPacket.setDestinationMACAddress(MAC.toBytes());

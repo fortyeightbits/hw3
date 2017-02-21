@@ -108,7 +108,7 @@ public class Router extends Device
 		if (header.getChecksum() != calculatedChecksum)
 		{
 			System.out.println("checksum error");
-			//return; //TODO
+			return;
 		}
 
 		header.setTtl((byte)(header.getTtl() - 1)); 
@@ -118,6 +118,9 @@ public class Router extends Device
 			System.out.println("packet dropped: TTL");
 			return;
 		}
+		//update checksum after decrementing TTL
+		header.resetChecksum();
+		header.setChecksum(calculateIPv4Checksum(header));
 
 		for (Map.Entry<String, Iface> entry : this.interfaces.entrySet())
 		{
@@ -126,7 +129,6 @@ public class Router extends Device
 				return;
 			}
 		}
-		System.out.println("forwarding now");
 		System.out.println("packet dest: " + IPv4.fromIPv4Address(header.getDestinationAddress()));
 		//FORWARDING PACKETS
 		RouteEntry rEntry = routeTable.lookup(header.getDestinationAddress());
@@ -136,8 +138,14 @@ public class Router extends Device
 			return;
 		}
 		
-		int nextHop = rEntry.getDestinationAddress();
-		ArpEntry aEntry = arpCache.lookup(header.getDestinationAddress());
+		
+		int nextHop;
+		if (rEntry.getGatewayAddress() == 0)
+			nextHop = header.getDestinationAddress();
+		else
+			nextHop = rEntry.getGatewayAddress();
+		
+		ArpEntry aEntry = arpCache.lookup(nextHop);
 		if (aEntry == null)
 		{
 			System.out.println("ArpEntry null");
@@ -165,7 +173,7 @@ public class Router extends Device
 	{
 		short retVal = 0;		
 		short headerLength = header.getHeaderLength();
-		System.out.println("headerLength: " + headerLength);
+		//System.out.println("headerLength: " + headerLength);
 		
 		ByteBuffer headerAsBytes = ByteBuffer.wrap(header.serialize());
 		// Now clear the checksum field so we can calculate it over the header:
@@ -176,16 +184,16 @@ public class Router extends Device
 		{
 			short nextShort = headerAsBytes.getShort();
 			accumulation += nextShort;
-			System.out.println("HeaderasBytesgetshort " + nextShort);
-			System.out.println("accumulation: " + accumulation);
+			//System.out.println("HeaderasBytesgetshort " + nextShort);
+			//System.out.println("accumulation: " + accumulation);
 		}
 		// Adding carry forward if any:
 		accumulation = ((accumulation >> 16) & 0xffff) + (accumulation & 0xffff);
-		System.out.println("AccumBeforeInversion: " + accumulation);
+		//System.out.println("AccumBeforeInversion: " + accumulation);
 		// Inverting the final value and casting to short for final checksum, this will be returned.
 		retVal = (short) (~accumulation & 0xffff);
 		
-		System.out.println("retVal: " + retVal);
+		//System.out.println("retVal: " + retVal);
 	
 		return retVal;
 	}

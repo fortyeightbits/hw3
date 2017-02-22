@@ -96,8 +96,10 @@ public class Router extends Device
 		//check if IPv4 packet
 		if (etherPacket.getEtherType() != Ethernet.TYPE_IPv4)
 		{
+			System.out.println("wrong type");
 			return; 
 		}
+		System.out.println("start checksum check");
 		IPv4 header = (IPv4)etherPacket.getPayload();
 		System.out.println("Packet Checksum before serialization: " + header.getChecksum());
 		// Check if checksum is correct
@@ -110,6 +112,8 @@ public class Router extends Device
 			System.out.println("checksum error");
 			return;
 		}
+		else
+			System.out.println("passed checksum check");
 
 		header.setTtl((byte)(header.getTtl() - 1)); 
 		
@@ -118,9 +122,9 @@ public class Router extends Device
 			System.out.println("packet dropped: TTL");
 			return;
 		}
-		//update checksum after decrementing TTL
-		header.resetChecksum();
-		header.setChecksum(calculateIPv4Checksum(header));
+		//update checksum after decrementing TTL: somehow breaks the checksum thing
+		System.out.println("wtf is going on here");
+		header.setChecksum(Router.calculateIPv4Checksum(header));
 
 		for (Map.Entry<String, Iface> entry : this.interfaces.entrySet())
 		{
@@ -130,6 +134,7 @@ public class Router extends Device
 			}
 		}
 		System.out.println("packet dest: " + IPv4.fromIPv4Address(header.getDestinationAddress()));
+		
 		//FORWARDING PACKETS
 		RouteEntry rEntry = routeTable.lookup(header.getDestinationAddress());
 		if (rEntry == null)

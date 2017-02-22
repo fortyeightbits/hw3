@@ -110,7 +110,7 @@ public class Router extends Device
 		if (header.getChecksum() != calculatedChecksum)
 		{
 			System.out.println("checksum error");
-			return;
+			//return;
 		}
 		else
 			System.out.println("passed checksum check");
@@ -123,9 +123,10 @@ public class Router extends Device
 			return;
 		}
 		//update checksum after decrementing TTL: somehow breaks the checksum thing
-		System.out.println("wtf is going on here");
-		header.setChecksum(Router.calculateIPv4Checksum(header));
-
+		//System.out.println("wtf is going on here");
+		//header.setChecksum(Router.calculateIPv4Checksum(header));
+		header.serialize();
+		System.out.println("calculated again: " + header.getChecksum());
 		for (Map.Entry<String, Iface> entry : this.interfaces.entrySet())
 		{
 			if (entry.getValue().getIpAddress() == header.getDestinationAddress())
@@ -199,7 +200,7 @@ public class Router extends Device
 		retVal = (short) (~accumulation & 0xffff);
 		
 		//System.out.println("retVal: " + retVal);
-	
+		headerAsBytes.rewind();
 		return retVal;
 	}
 }

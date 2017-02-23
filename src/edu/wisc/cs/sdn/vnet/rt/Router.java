@@ -96,7 +96,6 @@ public class Router extends Device
 		//check if IPv4 packet
 		if (etherPacket.getEtherType() != Ethernet.TYPE_IPv4)
 		{
-			System.out.println("wrong type");
 			return; 
 		}
 		IPv4 header = (IPv4)etherPacket.getPayload();
@@ -105,28 +104,21 @@ public class Router extends Device
 		header.resetChecksum();
 		header.serialize();
 		short newChecksum = calculateIPv4Checksum(header);
-		
-		System.out.println("old checksum" + oldChecksum);
-		System.out.println("new checksum" + header.getChecksum());
 		if (header.getChecksum() != oldChecksum)
 		{
 			System.out.println("checksum error");
 			return;
 		}
-		else
-			System.out.println("passed checksum check");
 
 		header.setTtl((byte)(header.getTtl() - 1)); 
 		
 		if (header.getTtl() == 0)
 		{
-			System.out.println("packet dropped: TTL");
 			return;
 		}
 
 		header.resetChecksum();
 		header.serialize();
-		System.out.println("calculated again: " + header.getChecksum());
 		for (Map.Entry<String, Iface> entry : this.interfaces.entrySet())
 		{
 			if (entry.getValue().getIpAddress() == header.getDestinationAddress())
@@ -134,13 +126,11 @@ public class Router extends Device
 				return;
 			}
 		}
-		System.out.println("packet dest: " + IPv4.fromIPv4Address(header.getDestinationAddress()));
 		
 		//FORWARDING PACKETS
 		RouteEntry rEntry = routeTable.lookup(header.getDestinationAddress());
 		if (rEntry == null)
 		{
-			System.out.println("RouteEntry null");
 			return;
 		}
 		
@@ -154,20 +144,16 @@ public class Router extends Device
 		ArpEntry aEntry = arpCache.lookup(nextHop);
 		if (aEntry == null)
 		{
-			System.out.println("ArpEntry null");
 			return;
 		}
 		
 		MACAddress MAC = aEntry.getMac();
-		System.out.println("arp MAC: " + MAC.toString());
 		etherPacket.setDestinationMACAddress(MAC.toBytes());
 		
 		MACAddress interfaceMAC = rEntry.getInterface().getMacAddress();
 		etherPacket.setSourceMACAddress(interfaceMAC.toBytes());
-		System.out.println("interface MAC: " + interfaceMAC.toString());
 		
 		boolean flag = sendPacket(etherPacket, rEntry.getInterface());
-		System.out.println("flag: " + flag);
 		
 		/********************************************************************/
 	}

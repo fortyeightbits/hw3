@@ -40,14 +40,10 @@ public class Switch extends Device
 		
 		if (outputInterface != null)
 		{
-			// TODO: Remove debug
-			System.out.println("sending to some");
 			sendPacket(etherPacket, outputInterface);
 		}
 		else
 		{
-			// TODO: Remove debug
-			System.out.println("sending to all");
 			for (Map.Entry<String, Iface> entry : interfaces.entrySet())
 			{
 				sendPacket(etherPacket, entry.getValue());

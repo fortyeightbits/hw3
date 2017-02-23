@@ -325,7 +325,6 @@ public class IPv4 extends BasePacket {
             int accumulation = 0;
             for (int i = 0; i < this.headerLength * 2; ++i) {
                 accumulation += 0xffff & bb.getShort();
-                System.out.println("serialize accumulation: " + accumulation);
             }
             accumulation = ((accumulation >> 16) & 0xffff)
                     + (accumulation & 0xffff);

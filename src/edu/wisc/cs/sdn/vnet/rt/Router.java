@@ -99,18 +99,19 @@ public class Router extends Device
 			System.out.println("wrong type");
 			return; 
 		}
-		System.out.println("start checksum check");
 		IPv4 header = (IPv4)etherPacket.getPayload();
-		System.out.println("Packet Checksum before serialization: " + header.getChecksum());
-		// Check if checksum is correct
-		short calculatedChecksum = Router.calculateIPv4Checksum(header);
-		System.out.println("Calculated Checksum: " + calculatedChecksum);
-		System.out.println("Packet Checksum: " + header.getChecksum());
 		
-		if (header.getChecksum() != calculatedChecksum)
+		short oldChecksum = header.getChecksum();
+		header.resetChecksum();
+		header.serialize();
+		short newChecksum = calculateIPv4Checksum(header);
+		
+		System.out.println("old checksum" + oldChecksum);
+		System.out.println("new checksum" + header.getChecksum());
+		if (header.getChecksum() != oldChecksum)
 		{
 			System.out.println("checksum error");
-			//return;
+			return;
 		}
 		else
 			System.out.println("passed checksum check");
@@ -122,9 +123,8 @@ public class Router extends Device
 			System.out.println("packet dropped: TTL");
 			return;
 		}
-		//update checksum after decrementing TTL: somehow breaks the checksum thing
-		//System.out.println("wtf is going on here");
-		//header.setChecksum(Router.calculateIPv4Checksum(header));
+
+		header.resetChecksum();
 		header.serialize();
 		System.out.println("calculated again: " + header.getChecksum());
 		for (Map.Entry<String, Iface> entry : this.interfaces.entrySet())
@@ -164,6 +164,7 @@ public class Router extends Device
 		
 		MACAddress interfaceMAC = rEntry.getInterface().getMacAddress();
 		etherPacket.setSourceMACAddress(interfaceMAC.toBytes());
+		System.out.println("interface MAC: " + interfaceMAC.toString());
 		
 		boolean flag = sendPacket(etherPacket, rEntry.getInterface());
 		System.out.println("flag: " + flag);

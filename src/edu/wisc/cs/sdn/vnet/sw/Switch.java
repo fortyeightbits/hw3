@@ -46,7 +46,11 @@ public class Switch extends Device
 		{
 			for (Map.Entry<String, Iface> entry : interfaces.entrySet())
 			{
-				sendPacket(etherPacket, entry.getValue());
+				// Do not send back to originator
+				if (entry.getValue() != inIface)
+				{
+					sendPacket(etherPacket, entry.getValue());
+				}
 			}
 		}
 	}

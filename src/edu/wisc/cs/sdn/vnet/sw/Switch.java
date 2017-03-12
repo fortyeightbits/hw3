@@ -1,7 +1,6 @@
 package edu.wisc.cs.sdn.vnet.sw;
 
 import net.floodlightcontroller.packet.Ethernet;
-import java.util.Map;
 import edu.wisc.cs.sdn.vnet.Device;
 import edu.wisc.cs.sdn.vnet.DumpFile;
 import edu.wisc.cs.sdn.vnet.Iface;
@@ -10,8 +9,9 @@ import edu.wisc.cs.sdn.vnet.Iface;
  * @author Aaron Gember-Jacobson
  */
 public class Switch extends Device
-{	
-	protected DeviceInterfaceMap interfaceMap;
+{
+	private MACTable macTable;
+	
 	/**
 	 * Creates a router for a specific host.
 	 * @param host hostname for the router
@@ -19,7 +19,7 @@ public class Switch extends Device
 	public Switch(String host, DumpFile logfile)
 	{
 		super(host,logfile);
-		interfaceMap = new DeviceInterfaceMap();
+		this.macTable = new MACTable();
 	}
 
 	/**
@@ -32,26 +32,26 @@ public class Switch extends Device
 		System.out.println("*** -> Received packet: " +
                 etherPacket.toString().replace("\n", "\n\t"));
 		
-		// Check if incoming MAC is already mapped to an interface, then map if unmapped.		
-		interfaceMap.recordIncomingMac(etherPacket.getSourceMAC(), inIface);
+		/********************************************************************/
+		/* TODO: Handle packets                                             */
 		
-		// Check if outgoing MAC is mapped in interface, then output from that interface, else output to all
-		Iface outputInterface = interfaceMap.getMapInterface(etherPacket.getDestinationMAC());
+		this.macTable.insert(etherPacket.getSourceMAC(), inIface);
 		
-		if (outputInterface != null)
-		{
-			sendPacket(etherPacket, outputInterface);
-		}
+		MACTableEntry entry = this.macTable.lookup(etherPacket.getDestinationMAC());
+		if (entry != null)
+		{ this.sendPacket(etherPacket, entry.getInterface()); }
 		else
 		{
-			for (Map.Entry<String, Iface> entry : interfaces.entrySet())
+			for (Iface iface : this.interfaces.values()) 
 			{
-				// Do not send back to originator
-				if (entry.getValue() != inIface)
+				if (iface != inIface)
 				{
-					sendPacket(etherPacket, entry.getValue());
+					this.sendPacket(etherPacket, iface);
+					System.out.println("Send packet out interface "+iface);
 				}
 			}
 		}
+		
+		/********************************************************************/
 	}
 }

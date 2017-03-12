@@ -4,8 +4,7 @@ import edu.wisc.cs.sdn.vnet.Device;
 import edu.wisc.cs.sdn.vnet.DumpFile;
 import edu.wisc.cs.sdn.vnet.Iface;
 
-import net.floodlightcontroller.packet.Ethernet;
-import net.floodlightcontroller.packet.IPv4;
+import net.floodlightcontroller.packet.*;
 
 /**
  * @author Aaron Gember-Jacobson and Anubhavnidhi Abhashkumar
@@ -97,6 +96,67 @@ public class Router extends Device
 		/********************************************************************/
 	}
 	
+	private void sendIcmpMsg(Ethernet etherPacket, Iface inIface, int errorCode)
+	{
+		IPv4 ipPacket = (IPv4)etherPacket.getPayload();
+        int srcIP = ipPacket.getSourceAddress();
+		
+		//Ethernet 
+		Ethernet ether = new Ethernet();
+		ether.setEtherType(Ethernet.TYPE_IPv4); //set EtherType
+		RouteEntry entry = this.routeTable.lookup(srcIP);
+		Iface outIface = entry.getInterface();
+        ether.setSourceMACAddress(outIface.getMacAddress().toBytes()); //set Source MAC (this router's interface)
+		int nextHop = entry.getGatewayAddress();
+        if (nextHop == 0)
+        { 
+			nextHop = srcIP; 
+		}
+        ArpEntry arpEntry = this.arpCache.lookup(nextHop);
+        ether.setDestinationMACAddress(arpEntry.getMac().toBytes()); //set Destination MAC (original sender)
+		
+		//IP
+		IPv4 ip = new IPv4(); 
+		ip.setTtl((byte)64); //set TTL
+		ip.setProtocol(IPv4.PROTOCOL_ICMP); //setProtocol
+		ip.setSourceAddress(inIface.getIpAddress()); //set Source IP
+		ip.setDestinationAddress(srcIP); //set Destination IP
+		
+		//ICMP
+		ICMP icmp = new ICMP();
+		int type = 0;
+		if (errorCode == 0) //TTL errorCode
+		{
+			type = 11;
+		}
+		else if (errorCode == 1) //unreachable errorCode
+		{
+			type = 3;
+		}
+		icmp.setIcmpType((byte)type);
+		icmp.setIcmpCode((byte)0);
+		
+		//Payload
+		int headerLengthPlus12 = (ipPacket.getHeaderLength()*4) + 8 + 4;
+		byte[] serializedIpPacket = ipPacket.serialize();
+		byte[] dataArray = new byte[headerLengthPlus12];
+		int ipPacketCnt = 0;
+		for (int i = 4; i < headerLengthPlus12; ++i)
+		{
+			dataArray[i] = serializedIpPacket[ipPacketCnt];
+			ipPacketCnt++;
+		}
+		Data data = new Data(dataArray);
+		
+		ether.setPayload(ip);
+		ip.setPayload(icmp);
+		icmp.setPayload(data);
+		
+		//send packet
+		this.sendPacket(ether, outIface);
+		System.out.println("Sending ICMP -- IP " + IPv4.fromIPv4Address(ip.getDestinationAddress()));
+	}
+	
 	private void handleIpPacket(Ethernet etherPacket, Iface inIface)
 	{
 		// Make sure it's an IP packet
@@ -119,7 +179,10 @@ public class Router extends Device
         // Check TTL
         ipPacket.setTtl((byte)(ipPacket.getTtl()-1));
         if (0 == ipPacket.getTtl())
-        { return; }
+        { 
+			sendIcmpMsg(etherPacket, inIface, 0);
+			return; 
+		}
         
         // Reset checksum now that TTL is decremented
         ipPacket.resetChecksum();
@@ -151,7 +214,10 @@ public class Router extends Device
 
         // If no entry matched, do nothing
         if (null == bestMatch)
-        { return; }
+        { 
+			sendIcmpMsg(etherPacket, inIface, 1);
+			return; 
+		}
 
         // Make sure we don't sent a packet back out the interface it came in
         Iface outIface = bestMatch.getInterface();

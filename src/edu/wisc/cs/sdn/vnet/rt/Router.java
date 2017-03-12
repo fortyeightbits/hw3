@@ -5,12 +5,13 @@ import edu.wisc.cs.sdn.vnet.DumpFile;
 import edu.wisc.cs.sdn.vnet.Iface;
 
 import net.floodlightcontroller.packet.*;
+import net.floodlightcontroller.packet.ICMP.ICMP_TYPES;
 
 /**
  * @author Aaron Gember-Jacobson and Anubhavnidhi Abhashkumar
  */
 public class Router extends Device
-{	
+{
 	/** Routing table for the router */
 	private RouteTable routeTable;
 	
@@ -96,7 +97,7 @@ public class Router extends Device
 		/********************************************************************/
 	}
 	
-	private void sendIcmpMsg(Ethernet etherPacket, Iface inIface, int errorCode)
+	private void sendIcmpMsg(Ethernet etherPacket, Iface inIface, ICMP.ICMP_TYPES errorCode)
 	{
 		IPv4 ipPacket = (IPv4)etherPacket.getPayload();
         int srcIP = ipPacket.getSourceAddress();
@@ -124,17 +125,33 @@ public class Router extends Device
 		
 		//ICMP
 		ICMP icmp = new ICMP();
-		int type = 0;
-		if (errorCode == 0) //TTL errorCode
+		int icmpType = 0;
+		int icmpCode = 0;
+		
+		switch(errorCode)
 		{
-			type = 11;
+		case ICMP_CODE_TIMEOUT:
+			icmpType = 11;
+			icmpCode = 0;
+			break;
+		case ICMP_CODE_UNREACHABLE_NET:
+			icmpType = 3;
+			icmpCode = 0;
+			break;
+		case ICMP_CODE_UNREACHABLE_HOST:
+			icmpType = 3;
+			icmpCode = 1;
+			break;
+		case ICMP_CODE_UNREACHABLE_PORT:
+			icmpType = 3;
+			icmpCode = 3;
+			break;
+		default:
+			throw new IllegalArgumentException();
 		}
-		else if (errorCode == 1) //unreachable errorCode
-		{
-			type = 3;
-		}
-		icmp.setIcmpType((byte)type);
-		icmp.setIcmpCode((byte)0);
+		
+		icmp.setIcmpType((byte)icmpType);
+		icmp.setIcmpCode((byte)icmpCode);
 		
 		//Payload
 		int headerLengthPlus12 = (ipPacket.getHeaderLength()*4) + 8 + 4;
@@ -180,7 +197,7 @@ public class Router extends Device
         ipPacket.setTtl((byte)(ipPacket.getTtl()-1));
         if (0 == ipPacket.getTtl())
         { 
-			sendIcmpMsg(etherPacket, inIface, 0);
+			sendIcmpMsg(etherPacket, inIface, ICMP_TYPES.ICMP_CODE_TIMEOUT);
 			return; 
 		}
         
@@ -191,7 +208,18 @@ public class Router extends Device
         for (Iface iface : this.interfaces.values())
         {
         	if (ipPacket.getDestinationAddress() == iface.getIpAddress())
-        	{ return; }
+        	{
+        		byte protocolType = ipPacket.getProtocol();
+        		if (protocolType == IPv4.PROTOCOL_TCP || protocolType == IPv4.PROTOCOL_UDP)
+        		{
+        			sendIcmpMsg(etherPacket, inIface, ICMP_TYPES.ICMP_CODE_UNREACHABLE_PORT);
+            		return; 
+        		}
+        		else
+        		{
+        			// echo function here
+        		}
+        	}
         }
 		
         // Do route lookup and forward
@@ -215,7 +243,7 @@ public class Router extends Device
         // If no entry matched, do nothing
         if (null == bestMatch)
         { 
-			sendIcmpMsg(etherPacket, inIface, 1);
+			sendIcmpMsg(etherPacket, inIface, ICMP_TYPES.ICMP_CODE_UNREACHABLE_NET);
 			return; 
 		}
 
@@ -235,7 +263,10 @@ public class Router extends Device
         // Set destination MAC address in Ethernet header
         ArpEntry arpEntry = this.arpCache.lookup(nextHop);
         if (null == arpEntry)
-        { return; }
+        { 
+        	sendIcmpMsg(etherPacket, inIface, ICMP_TYPES.ICMP_CODE_UNREACHABLE_HOST);
+        	return; 
+        }
         etherPacket.setDestinationMACAddress(arpEntry.getMac().toBytes());
         
         this.sendPacket(etherPacket, outIface);

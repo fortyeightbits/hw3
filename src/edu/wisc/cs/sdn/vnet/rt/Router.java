@@ -97,6 +97,47 @@ public class Router extends Device
 		/********************************************************************/
 	}
 	
+	private void sendIcmpEcho(Ethernet etherPacket, Iface inIface)
+	{
+		IPv4 ipPacket = (IPv4)etherPacket.getPayload();
+		int srcIP = ipPacket.getSourceAddress();
+		ICMP inICMP = (ICMP)ipPacket.getPayload();
+		
+		// Building Ethernet header on reply:
+		Ethernet reply = new Ethernet();
+		reply.setEtherType(Ethernet.TYPE_IPv4);
+		RouteEntry entry = this.routeTable.lookup(srcIP);
+		Iface outIface = entry.getInterface();
+        reply.setSourceMACAddress(outIface.getMacAddress().toBytes()); //set Source MAC (this router's interface)
+		int nextHop = entry.getGatewayAddress();
+        if (nextHop == 0)
+        { 
+			nextHop = srcIP; 
+		}
+        ArpEntry arpEntry = this.arpCache.lookup(nextHop);
+        reply.setDestinationMACAddress(arpEntry.getMac().toBytes()); //set Destination MAC (original sender)
+        
+		//IP
+		IPv4 ip = new IPv4(); 
+		ip.setTtl((byte)64); //set TTL
+		ip.setProtocol(IPv4.PROTOCOL_ICMP); //setProtocol
+		ip.setSourceAddress(inIface.getIpAddress()); //set Source IP
+		ip.setDestinationAddress(srcIP); //set Destination IP
+		
+		//ICMP
+		ICMP icmp = new ICMP();
+		icmp.setIcmpType((byte)0);
+		icmp.setIcmpCode((byte)0);
+		icmp.setChecksum(inICMP.getChecksum());
+		icmp.setPayload(inICMP.getPayload());
+		
+		reply.setPayload(ip);
+		ip.setPayload(icmp);
+		
+		//send packet
+		this.sendPacket(reply, outIface);
+	}
+	
 	private void sendIcmpMsg(Ethernet etherPacket, Iface inIface, ICMP.ICMP_TYPES errorCode)
 	{
 		IPv4 ipPacket = (IPv4)etherPacket.getPayload();
@@ -215,9 +256,10 @@ public class Router extends Device
         			sendIcmpMsg(etherPacket, inIface, ICMP_TYPES.ICMP_CODE_UNREACHABLE_PORT);
             		return; 
         		}
-        		else
+        		else if(protocolType == IPv4.PROTOCOL_ICMP)
         		{
         			// echo function here
+        			sendIcmpEcho(etherPacket, inIface);
         		}
         	}
         }

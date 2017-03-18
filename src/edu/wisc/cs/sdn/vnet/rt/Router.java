@@ -1,5 +1,7 @@
 package edu.wisc.cs.sdn.vnet.rt;
 
+import java.nio.ByteBuffer;
+
 import edu.wisc.cs.sdn.vnet.Device;
 import edu.wisc.cs.sdn.vnet.DumpFile;
 import edu.wisc.cs.sdn.vnet.Iface;
@@ -73,6 +75,48 @@ public class Router extends Device
 		System.out.println("----------------------------------");
 	}
 
+	private void handleArpPacket(Ethernet etherPacket, Iface inIface)
+	{	
+		// Cast and convert ARP packet IP to int:
+		ARP inArpPacket = (ARP)etherPacket.getPayload();
+		if (inArpPacket.getOpCode() != ARP.OP_REQUEST)
+		{
+			return;
+		}
+		
+		int targetIp = ByteBuffer.wrap(inArpPacket.getTargetProtocolAddress()).getInt();
+		//IPv4.toIPv4Address(arpPacket.getTargetProtocolAddress()); NYIM NYIM PRINT LATER
+		
+		if (inIface.getIpAddress() == targetIp)
+		{
+			byte [] interfaceMac = inIface.getMacAddress().toBytes();
+			byte [] replyToMac = inArpPacket.getSenderHardwareAddress();
+			// send reply ARP
+			Ethernet replyEtherPacket = new Ethernet();
+			ARP replyArpPacket = new ARP();
+			
+			// First, we populate the Ethernet packet:
+			replyEtherPacket.setEtherType(Ethernet.TYPE_ARP);
+			replyEtherPacket.setDestinationMACAddress(replyToMac);
+			replyEtherPacket.setSourceMACAddress(interfaceMac);
+			
+			// Next, we populate the ARP packet:
+			replyArpPacket.setHardwareType(ARP.HW_TYPE_ETHERNET);
+			replyArpPacket.setProtocolType(ARP.PROTO_TYPE_IP);
+			replyArpPacket.setHardwareAddressLength((byte)Ethernet.DATALAYER_ADDRESS_LENGTH);
+			replyArpPacket.setProtocolAddressLength(IPv4.IP_PROTO_LENGTH);
+			replyArpPacket.setOpCode(ARP.OP_REPLY);
+			replyArpPacket.setSenderHardwareAddress(interfaceMac);
+			replyArpPacket.setSenderProtocolAddress(inIface.getIpAddress());
+			replyArpPacket.setTargetHardwareAddress(replyToMac);
+			replyArpPacket.setTargetProtocolAddress(inArpPacket.getSenderProtocolAddress());
+			
+			// Store ARP in payload of Ethernet packet and send out
+			replyEtherPacket.setPayload(replyArpPacket);
+			this.sendPacket(replyEtherPacket, inIface);
+		}
+	}
+
 	/**
 	 * Handle an Ethernet packet received on a specific interface.
 	 * @param etherPacket the Ethernet packet that was received
@@ -91,7 +135,11 @@ public class Router extends Device
 		case Ethernet.TYPE_IPv4:
 			this.handleIpPacket(etherPacket, inIface);
 			break;
-		// Ignore all other packet types, for now
+		case Ethernet.TYPE_ARP:
+			this.handleArpPacket(etherPacket, inIface);
+			break;
+		default:
+			break;
 		}
 		
 		/********************************************************************/

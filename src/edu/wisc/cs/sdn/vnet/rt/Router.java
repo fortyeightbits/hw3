@@ -76,6 +76,16 @@ public class Router extends Device
 		System.out.print(this.arpCache.toString());
 		System.out.println("----------------------------------");
 	}
+	
+	public void setupRipRouteTable()
+	{
+			for (Iface iface : this.interfaces.values())
+			{
+				int dstIp = iface.getIpAddress();
+				int maskIp = iface.getSubnetMask();
+				this.routeTable.insert(dstIp, 0, maskIp, iface);
+			}
+	}
 
 	private void handleArpReplyPacket(Ethernet etherPacket, Iface inIface)
 	{

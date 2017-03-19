@@ -144,7 +144,7 @@ public class Router extends Device
 		arpPacket.setOpCode(ARP.OP_REQUEST);
 		arpPacket.setSenderHardwareAddress(bestMatchInterface.getMacAddress().toBytes());
 		arpPacket.setSenderProtocolAddress(bestMatchInterface.getIpAddress());
-		arpPacket.setTargetHardwareAddress(new byte[] {0});
+		arpPacket.setTargetHardwareAddress(new byte[] {0, 0, 0, 0 ,0 ,0});
 		arpPacket.setTargetProtocolAddress(destinationIp);
 		
 		// Store ARP in payload of Ethernet packet and send out

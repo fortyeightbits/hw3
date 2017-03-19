@@ -74,16 +74,20 @@ public class TimedPacketQueue
 	
 	public void appendPacketToList(Ethernet packet)
 	{
+		System.out.println("Appending to the list");
 		packetQueue.addLast(packet);
 	}
 	
 	public void sendEntireList(Iface outIface, byte[] destinationMac)
 	{
+		int ip = ((IPv4)(packetQueue.peekFirst().getPayload())).getSourceAddress();
 		for (Ethernet element : packetQueue)
 		{
 			System.out.println("Sending List element");
 			element.setDestinationMACAddress(destinationMac);
 			localRouter.sendPacket(element, outIface);
 		}
+		arpResendTimer.cancel();
+		localQueueHandler.removeFromMap(ip);
 	}
 }

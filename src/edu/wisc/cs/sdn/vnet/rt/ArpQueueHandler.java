@@ -17,6 +17,7 @@ public class ArpQueueHandler
 	// This class assists us in handling the packet queues and ARP replies
 	public ArpQueueHandler(ArpCache cache, Router router)
 	{
+		packetQueueMap = new HashMap<Integer, TimedPacketQueue>();
 		arpCache = cache;
 		localRouter = router;
 	}
@@ -45,16 +46,18 @@ public class ArpQueueHandler
 	public void enqueueAndBeginTimer(Ethernet inPacket)
 	{
 		Integer ip = ((IPv4)(inPacket.getPayload())).getDestinationAddress();
-		if (packetQueueMap.containsKey(ip))
-		{
-			System.out.println("ARP already listed as unfound, appending to list.");
-			packetQueueMap.get(ip).appendPacketToList(inPacket);
-		}
-		else
+		System.out.println("IP: " + ip);
+		if (packetQueueMap.containsKey(ip) == false)
 		{
 			System.out.println("ARP entry not found, now beginning timer and new list.");
 			TimedPacketQueue timedQueue = new TimedPacketQueue(localRouter, this);
 			packetQueueMap.put(ip, timedQueue);
 		}
+		else
+		{
+			System.out.println("ARP already listed as unfound, appending to list.");
+		}
+		
+		packetQueueMap.get(ip).appendPacketToList(inPacket);
 	}
 }

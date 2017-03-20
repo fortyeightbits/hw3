@@ -91,8 +91,7 @@ public class Main
 		
 			else //no static route table
 			{
-				//TODO: How to "start" RIP?
-				((Router)dev).setupRipRouteTable();
+				((Router)dev).initRip();
 			}
 			
 			// Read static ACP cache

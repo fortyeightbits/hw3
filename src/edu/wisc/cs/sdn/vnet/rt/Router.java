@@ -77,15 +77,22 @@ public class Router extends Device
 		System.out.println("----------------------------------");
 	}
 	
-	public void setupRipRouteTable()
+	public void initRip()
 	{
-			for (Iface iface : this.interfaces.values())
-			{
-				int dstIp = iface.getIpAddress();
-				int maskIp = iface.getSubnetMask();
-				this.routeTable.insert(dstIp, 0, maskIp, iface);
-			}
+		for (Iface iface : this.interfaces.values())
+		{
+			int dstIp = iface.getIpAddress();
+			int maskIp = iface.getSubnetMask();
+			this.routeTable.insert(dstIp, 0, maskIp, iface);
+		}
+		//send RIP request on all interfaces
+		UDP udp = new UDP();
+		udp.setSourcePort(UDP.RIP_PORT);
+		udp.setDestinationPort(UDP.RIP_PORT);
+		int address = IPv4.toIPv4Address("224.0.0.9");
+		RIPv2Entry rip = new RIPv2Entry(address, int subnetMask, int metric); //How to do? :( Can't set dest MAC
 	}
+	
 
 	private void handleArpReplyPacket(Ethernet etherPacket, Iface inIface)
 	{

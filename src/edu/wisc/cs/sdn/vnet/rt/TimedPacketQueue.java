@@ -41,10 +41,10 @@ public class TimedPacketQueue
 				}
 				else
 				{
-					System.out.println("Timer tick once and resend ARP once");
 					// Else, get the first entry's IP address, this should be the same for ALL entries in this list
 					IPv4 ipPacket = (IPv4) packetQueue.peekFirst().getPayload();
 					destinationIp = ipPacket.getDestinationAddress();
+					System.out.println("Timer tick once and resend ARP once, dst ip: " + destinationIp);
 				}
 				// Send ARP request to get MAC for this IP
 				localRouter.sendArpRequest(destinationIp);
@@ -63,13 +63,14 @@ public class TimedPacketQueue
 
 			        // Find matching route table entry 
 			        RouteEntry bestMatch = localRouter.getRouteTable().lookup(srcAddr);
+			        System.out.println("BestMatch: "+bestMatch.toString());
 			        
 			        // Send the ICMP message out the source interface
 					localRouter.sendIcmpMsg(etherPacket, bestMatch.getInterface(), ICMP_TYPES.ICMP_CODE_UNREACHABLE_HOST);
 					localQueueHandler.removeFromMap(destinationIp);
 				}
 			}
-		}, 0, TIMER_RESEND);
+		}, TIMER_RESEND, TIMER_RESEND);
 	}
 	
 	public void appendPacketToList(Ethernet packet)

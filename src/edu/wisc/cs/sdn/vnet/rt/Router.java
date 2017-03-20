@@ -90,7 +90,7 @@ public class Router extends Device
 		udp.setSourcePort(UDP.RIP_PORT);
 		udp.setDestinationPort(UDP.RIP_PORT);
 		int address = IPv4.toIPv4Address("224.0.0.9");
-		RIPv2Entry rip = new RIPv2Entry(address, int subnetMask, int metric); //How to do? :( Can't set dest MAC
+//		RIPv2Entry rip = new RIPv2Entry(address, int subnetMask, int metric); //How to do? :( Can't set dest MAC
 	}
 	
 
@@ -107,7 +107,8 @@ public class Router extends Device
 		
 		int targetIp = ByteBuffer.wrap(inArpPacket.getTargetProtocolAddress()).getInt();
 		//IPv4.toIPv4Address(arpPacket.getTargetProtocolAddress()); NYIM NYIM PRINT LATER
-		
+		System.out.println("ARP request packet is looking for this IP: " + IPv4.fromIPv4Address(targetIp));
+		System.out.println("My IP is: " + IPv4.fromIPv4Address(inIface.getIpAddress()));
 		if (inIface.getIpAddress() == targetIp)
 		{
 			byte [] interfaceMac = inIface.getMacAddress().toBytes();
@@ -134,6 +135,7 @@ public class Router extends Device
 			
 			// Store ARP in payload of Ethernet packet and send out
 			replyEtherPacket.setPayload(replyArpPacket);
+			System.out.println("Sending ARP reply packet: " + replyEtherPacket.toString());
 			this.sendPacket(replyEtherPacket, inIface);
 		}
 	}
@@ -190,10 +192,12 @@ public class Router extends Device
 		case Ethernet.TYPE_ARP:
 			if (((ARP)etherPacket.getPayload()).getOpCode() == ARP.OP_REQUEST)
 			{
+				System.out.println("Sending ARP reply");
 				this.handleArpRequestPacket(etherPacket, inIface);			
 			}
 			else if (((ARP)etherPacket.getPayload()).getOpCode() == ARP.OP_REPLY)
 			{
+				System.out.println("Handling ARP reply");
 				this.handleArpReplyPacket(etherPacket, inIface);
 			}
 			break;

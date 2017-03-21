@@ -81,9 +81,10 @@ public class Router extends Device
 	{
 		for (Iface iface : this.interfaces.values())
 		{
-			int dstIp = iface.getIpAddress();
 			int maskIp = iface.getSubnetMask();
+			int dstIp = iface.getIpAddress() | maskIp;
 			this.routeTable.insert(dstIp, 0, maskIp, iface);
+			System.out.println("Initial Route Table Entry -- dstIp: " + dstIp + " gateway: " + 0 + " maskIp: " + maskIp);
 		}
 		//send RIP request on all interfaces
 		UDP udp = new UDP();

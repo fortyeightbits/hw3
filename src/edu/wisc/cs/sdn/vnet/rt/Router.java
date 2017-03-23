@@ -1,6 +1,8 @@
 package edu.wisc.cs.sdn.vnet.rt;
 
 import java.nio.ByteBuffer;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import edu.wisc.cs.sdn.vnet.Device;
 import edu.wisc.cs.sdn.vnet.DumpFile;
@@ -86,11 +88,46 @@ public class Router extends Device
 			this.routeTable.insert(dstIp, 0, maskIp, iface);
 			System.out.println("Initial Route Table Entry -- dstIp: " + dstIp + " gateway: " + 0 + " maskIp: " + maskIp);
 		}
-		//send RIP request on all interfaces
-		UDP udp = new UDP();
-		udp.setSourcePort(UDP.RIP_PORT);
-		udp.setDestinationPort(UDP.RIP_PORT);
+		
+		// Create the packets, populate, encapsulate them and send RIP request on all interfaces
+
+		Ethernet etherPacket = new Ethernet();
+		IPv4 ipPacket = new IPv4();
+		UDP udpPacket = new UDP();
+		RIPv2 ripPacket = new RIPv2();
+		
+		// Populating RIP packet:
+		ripPacket.setCommand(RIPv2.COMMAND_REQUEST);
+		
+		// Populating UDP packet:
+		udpPacket.setSourcePort(UDP.RIP_PORT);
+		udpPacket.setDestinationPort(UDP.RIP_PORT);
+		
+		// Populating Ipv4 packet:
 		int address = IPv4.toIPv4Address("224.0.0.9");
+		ipPacket.setDestinationAddress(address);
+		
+		// Populating Ethernet packet:
+		etherPacket.setDestinationMACAddress(Ethernet.BROADCAST_MAC);
+		
+		udpPacket.setPayload(ripPacket);
+		ipPacket.setPayload(udpPacket);
+		etherPacket.setPayload(ipPacket);
+		
+		// Set timer and task to continuously broadcast RIP responses
+		Timer ripBroadcastTimer = new Timer();
+		ripBroadcastTimer.scheduleAtFixedRate(new TimerTask() {
+			
+			@Override
+			public void run() {
+				// TODO Send promiscuous RIP response broadcast
+				for (RouteEntry entry : this.routeTable)
+				{
+					
+				}
+			}
+		}, 10000, 10000);
+		
 //		RIPv2Entry rip = new RIPv2Entry(address, int subnetMask, int metric); //How to do? :( Can't set dest MAC
 	}
 	

@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -17,7 +18,7 @@ import edu.wisc.cs.sdn.vnet.Iface;
  * Route table for a router.
  * @author Aaron Gember-Jacobson
  */
-public class RouteTable 
+public class RouteTable implements Iterable<RouteEntry>
 {
 	/** Entries in the route table */
 	private List<RouteEntry> entries; 
@@ -143,7 +144,7 @@ public class RouteTable
 			}
 			
 			// Add an entry to the route table
-			this.insert(dstIp, gwIp, maskIp, iface);
+			this.insert(dstIp, gwIp, maskIp, iface, 0);
 		}
 	
 		// Close the file
@@ -158,10 +159,11 @@ public class RouteTable
 	 * @param maskIp subnet mask
 	 * @param iface router interface out which to send packets to reach the 
 	 *        destination or gateway
+	 * @param metric Metric
 	 */
-	public void insert(int dstIp, int gwIp, int maskIp, Iface iface)
+	public void insert(int dstIp, int gwIp, int maskIp, Iface iface, int metric)
 	{
-		RouteEntry entry = new RouteEntry(dstIp, gwIp, maskIp, iface);
+		RouteEntry entry = new RouteEntry(dstIp, gwIp, maskIp, iface, metric);
         synchronized(this.entries)
         { 
             this.entries.add(entry);
@@ -240,5 +242,10 @@ public class RouteTable
             { result += entry.toString()+"\n"; }
 		    return result;
         }
+	}
+
+	@Override
+	public Iterator<RouteEntry> iterator() {
+		return this.entries.iterator();
 	}
 }

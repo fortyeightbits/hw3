@@ -18,6 +18,9 @@ public class RouteEntry
 	/** Subnet mask */
 	private int maskAddress;
 	
+	/** Hops */
+	private int hops;
+	
 	/** Router interface out which packets should be sent to reach
 	 * the destination or gateway */
 	private Iface iface;
@@ -29,14 +32,16 @@ public class RouteEntry
 	 * @param maskAddress subnet mask
 	 * @param iface the router interface out which packets should 
 	 *        be sent to reach the destination or gateway
+	 * @param metric Metric
 	 */
 	public RouteEntry(int destinationAddress, int gatewayAddress, 
-			int maskAddress, Iface iface)
+			int maskAddress, Iface iface, int metric)
 	{
 		this.destinationAddress = destinationAddress;
 		this.gatewayAddress = gatewayAddress;
 		this.maskAddress = maskAddress;
 		this.iface = iface;
+		this.hops = metric;
 	}
 	
 	/**
@@ -69,6 +74,15 @@ public class RouteEntry
 
     public void setInterface(Iface iface)
     { this.iface = iface; }
+    
+	/**
+	 * @return the number of hops to get to a given route entry
+	 */
+	public int getHops()
+	{ return this.hops; }
+
+    public void setHops(int hopArg)
+    { this.hops = hopArg; }
 	
 	public String toString()
 	{

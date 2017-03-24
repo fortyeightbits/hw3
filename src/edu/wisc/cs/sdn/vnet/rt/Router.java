@@ -235,6 +235,10 @@ public class Router extends Device
 			RouteEntry routeEntry = this.routeTable.lookup(ripEntry.getAddress());
 			if (routeEntry!= null)
 			{
+				if (routeEntry.getGatewayAddress() != 0)
+				{
+					routeEntry.serviceTimer(RouteEntry.DEFAULT_TIMEOUT);
+				}
 				// Check if it takes less hops:
 				if(ripEntry.getMetric()+1 < routeEntry.getHops())
 				{
@@ -245,7 +249,7 @@ public class Router extends Device
 			}
 			else
 			{
-				this.routeTable.insert(ripEntry.getAddress(), ipPacket.getSourceAddress(), ripEntry.getSubnetMask(), inIface, ripEntry.getMetric() + 1);
+				this.routeTable.insertTimedEntry(ripEntry.getAddress(), ipPacket.getSourceAddress(), ripEntry.getSubnetMask(), inIface, ripEntry.getMetric() + 1, RouteEntry.DEFAULT_TIMEOUT);
 			}
 		}
 		

@@ -170,6 +170,15 @@ public class RouteTable implements Iterable<RouteEntry>
         }
 	}
 	
+	public void insertTimedEntry(int dstIp, int gwIp, int maskIp, Iface iface, int metric, int timeout)
+	{
+		RouteEntry entry = new RouteEntry(dstIp, gwIp, maskIp, iface, metric, timeout, this);
+        synchronized(this.entries)
+        { 
+            this.entries.add(entry);
+        }
+	}
+	
 	/**
 	 * Remove an entry from the route table.
 	 * @param dstIP destination IP of the entry to remove

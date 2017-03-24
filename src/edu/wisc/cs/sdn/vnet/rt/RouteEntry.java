@@ -1,6 +1,10 @@
 package edu.wisc.cs.sdn.vnet.rt;
 
 import net.floodlightcontroller.packet.IPv4;
+
+import java.util.Timer;
+import java.util.TimerTask;
+
 import edu.wisc.cs.sdn.vnet.Iface;
 
 /**
@@ -9,6 +13,8 @@ import edu.wisc.cs.sdn.vnet.Iface;
  */
 public class RouteEntry 
 {
+	public static final int DEFAULT_TIMEOUT = 30000;
+	
 	/** Destination IP address */
 	private int destinationAddress;
 	
@@ -20,6 +26,13 @@ public class RouteEntry
 	
 	/** Hops */
 	private int hops;
+	
+	/** RouteEntry removal timer */
+	private Timer routeEntryRemovalTimer;
+	
+	private RouteEntryTimerTask routeTimerTask;
+	
+	private RouteTable localTable;
 	
 	/** Router interface out which packets should be sent to reach
 	 * the destination or gateway */
@@ -42,6 +55,33 @@ public class RouteEntry
 		this.maskAddress = maskAddress;
 		this.iface = iface;
 		this.hops = metric;
+	}
+	
+	// Overload constructor:
+	public RouteEntry(final int destinationAddress, int gatewayAddress, final int maskAddress,
+			Iface iface, int metric, int timeout, RouteTable table)
+	{
+		this.destinationAddress = destinationAddress;
+		this.gatewayAddress = gatewayAddress;
+		this.maskAddress = maskAddress;
+		this.iface = iface;
+		this.hops = metric;
+		
+		if (timeout != 0)
+		{
+			this.routeEntryRemovalTimer = new Timer();
+			this.routeTimerTask = new RouteEntryTimerTask(table, destinationAddress, maskAddress);
+			routeEntryRemovalTimer.schedule(this.routeTimerTask, timeout);
+		}
+	}
+	
+	public void serviceTimer(int timeout)
+	{
+		System.out.println("Servicing timer!");
+		this.routeEntryRemovalTimer.cancel();
+		this.routeEntryRemovalTimer = new Timer();
+		this.routeTimerTask = new RouteEntryTimerTask(this.localTable, this.destinationAddress, this.maskAddress);
+		routeEntryRemovalTimer.schedule(this.routeTimerTask, timeout);
 	}
 	
 	/**

@@ -32,8 +32,6 @@ public class RouteEntry
 	
 	private RouteEntryTimerTask routeTimerTask;
 	
-	private RouteTable localTable;
-	
 	/** Router interface out which packets should be sent to reach
 	 * the destination or gateway */
 	private Iface iface;
@@ -75,12 +73,12 @@ public class RouteEntry
 		}
 	}
 	
-	public void serviceTimer(int timeout)
+	public void serviceTimer(int timeout, RouteTable routeTable)
 	{
 		System.out.println("Servicing timer!");
 		this.routeEntryRemovalTimer.cancel();
 		this.routeEntryRemovalTimer = new Timer();
-		this.routeTimerTask = new RouteEntryTimerTask(this.localTable, this.destinationAddress, this.maskAddress);
+		this.routeTimerTask = new RouteEntryTimerTask(routeTable, this.destinationAddress, this.maskAddress);
 		routeEntryRemovalTimer.schedule(this.routeTimerTask, timeout);
 	}
 	

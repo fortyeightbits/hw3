@@ -18,9 +18,11 @@ public class RouteEntryTimerTask extends TimerTask
 	@Override
 	public void run() {
 		// remove
-		this.cancel();
 		System.out.println("Route Entry Timed Out: " + destinationAddress);
-		table.remove(destinationAddress, maskAddress);
+		if(table.remove(destinationAddress, maskAddress) == true)
+		{
+			System.out.println("Successfully removed route entry from table");
+		}
 	}
 	
 
